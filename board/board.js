@@ -47,12 +47,42 @@
     return div.innerHTML;
   }
 
-  function renderAttachmentDetail(label, attachment) {
-    if (!attachment) return '';
-    if (attachment.contentType === 'link') {
-      return `<div class="detail-row"><label>${label}</label><p><a href="${escapeHtml(attachment.content)}" target="_blank" rel="noopener">${escapeHtml(attachment.name)}</a></p></div>`;
+  function detailValue(text) {
+    if (text) return `<p>${text}</p>`;
+    return `<p class="detail-empty">—</p>`;
+  }
+
+  function renderAttachmentSection(label, job, kind, documents) {
+    const att = a2bResolveAttachment(job, kind, documents);
+    let content;
+
+    if (!att) {
+      content = `<p class="detail-empty">Not specified</p>`;
+    } else if (att.missing) {
+      content = `<p class="detail-empty">Document was removed from library</p>`;
+    } else if (att.contentType === 'link') {
+      const sourceLabel = att.source === 'library' ? 'From library' : 'Custom link';
+      content = `
+        <div class="detail-attach">
+          <span class="detail-attach-source">${sourceLabel}</span>
+          <div class="detail-attach-name">🔗 ${escapeHtml(att.name)}</div>
+          <a class="detail-attach-link" href="${escapeHtml(att.content)}" target="_blank" rel="noopener">${escapeHtml(att.content)}</a>
+        </div>`;
+    } else {
+      const sourceLabel = att.source === 'library' ? 'From library' : 'Custom text';
+      content = `
+        <div class="detail-attach">
+          <span class="detail-attach-source">${sourceLabel}</span>
+          <div class="detail-attach-name">📄 ${escapeHtml(att.name)}</div>
+          <div class="detail-text-block">${escapeHtml(att.content)}</div>
+        </div>`;
     }
-    return `<div class="detail-row"><label>${label}</label><p style="white-space:pre-wrap">${escapeHtml(attachment.content)}</p></div>`;
+
+    return `
+      <div class="detail-row">
+        <label>${label}</label>
+        ${content}
+      </div>`;
   }
 
   function renderTagChip(tag) {
@@ -274,11 +304,15 @@
 
   function renderCard(job) {
     const salaryDisplay = a2bFormatSalary(job);
+    const cvAtt = a2bResolveAttachment(job, 'cv', allDocuments);
     const tags = job.tags && job.tags.length > 0
       ? `<div class="card-tags">${job.tags.map(renderTagChip).join('')}</div>`
       : '';
     const applied = job.appliedAt
       ? `<div class="card-applied">Applied ${formatDate(job.appliedAt)}</div>`
+      : '';
+    const cvLine = cvAtt && !cvAtt.missing
+      ? `<div class="card-cv">CV: ${escapeHtml(cvAtt.name)}</div>`
       : '';
 
     return `
@@ -287,6 +321,7 @@
         ${job.company ? `<div class="card-company">${escapeHtml(job.company)}</div>` : ''}
         ${tags}
         ${salaryDisplay ? `<div class="card-salary">${escapeHtml(salaryDisplay)}</div>` : ''}
+        ${cvLine}
         ${applied}
         ${job.notes ? `<div class="card-notes">${escapeHtml(job.notes)}</div>` : ''}
         <div class="card-date">${formatDate(job.createdAt)}</div>
@@ -349,37 +384,81 @@
     });
   }
 
-  function openDetail(id) {
-    const job = allJobs.find((j) => j.id === id);
+  async function openDetail(id) {
+    allDocuments = await a2bGetDocuments();
+    const job = await a2bGetJobById(id);
     if (!job) return;
 
     selectedJobId = id;
     const salaryDisplay = a2bFormatSalary(job);
-    const tagsHtml =
-      job.tags && job.tags.length > 0
-        ? `<div class="detail-row"><label>Tags</label><div class="detail-tags">${job.tags.map(renderTagChip).join('')}</div></div>`
-        : '';
-
-    const cv = a2bResolveAttachment(job, 'cv', allDocuments);
-    const cover = a2bResolveAttachment(job, 'cl', allDocuments);
+    const currencyLabel = A2B_CURRENCIES.find((c) => c.id === job.currency)?.label || job.currency;
 
     document.getElementById('detail-title').textContent = job.title;
+    document.getElementById('detail-subtitle').textContent = job.company || '';
+    document.getElementById('detail-subtitle').hidden = !job.company;
+
+    const tagsHtml =
+      job.tags && job.tags.length > 0
+        ? job.tags.map(renderTagChip).join('')
+        : '<span class="detail-empty">—</span>';
+
     document.getElementById('detail-body').innerHTML = `
-      <div class="detail-row">
-        <label>Status</label>
-        <p><span class="status-badge" style="background:${a2bGetStatusColor(job.status)}">${a2bGetStatusLabel(job.status)}</span></p>
+      <div class="detail-section">
+        <div class="detail-section-title">Overview</div>
+        <div class="detail-row">
+          <label>Status</label>
+          <p><span class="status-badge" style="background:${a2bGetStatusColor(job.status)}">${a2bGetStatusLabel(job.status)}</span></p>
+        </div>
+        <div class="detail-row">
+          <label>Company</label>
+          ${detailValue(job.company ? escapeHtml(job.company) : '')}
+        </div>
+        <div class="detail-row">
+          <label>Salary</label>
+          ${detailValue(salaryDisplay ? `${escapeHtml(salaryDisplay)} <span class="detail-attach-source">(${escapeHtml(currencyLabel)})</span>` : '')}
+        </div>
+        <div class="detail-row">
+          <label>Applied</label>
+          ${detailValue(job.appliedAt ? escapeHtml(formatDate(job.appliedAt)) : '')}
+        </div>
+        <div class="detail-row">
+          <label>Tags</label>
+          <div class="detail-tags">${tagsHtml}</div>
+        </div>
       </div>
-      ${job.company ? `<div class="detail-row"><label>Company</label><p>${escapeHtml(job.company)}</p></div>` : ''}
-      ${salaryDisplay ? `<div class="detail-row"><label>Salary</label><p>${escapeHtml(salaryDisplay)}</p></div>` : ''}
-      ${job.appliedAt ? `<div class="detail-row"><label>Applied</label><p>${formatDate(job.appliedAt)}</p></div>` : ''}
-      ${tagsHtml}
-      ${renderAttachmentDetail('CV / Resume', cv)}
-      ${renderAttachmentDetail('Cover Letter', cover)}
-      ${job.link ? `<div class="detail-row"><label>Link</label><p><a href="${escapeHtml(job.link)}" target="_blank" rel="noopener">${escapeHtml(job.link)}</a></p></div>` : ''}
-      ${job.notes ? `<div class="detail-row"><label>Notes</label><p style="white-space:pre-wrap">${escapeHtml(job.notes)}</p></div>` : ''}
-      <div class="detail-row">
-        <label>Saved</label>
-        <p>${formatDate(job.createdAt)}${job.updatedAt !== job.createdAt ? ` · Updated ${formatDate(job.updatedAt)}` : ''}</p>
+
+      <div class="detail-section">
+        <div class="detail-section-title">Application materials</div>
+        ${renderAttachmentSection('CV / Resume', job, 'cv', allDocuments)}
+        ${renderAttachmentSection('Cover Letter', job, 'cl', allDocuments)}
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-title">Links & notes</div>
+        <div class="detail-row">
+          <label>Job listing</label>
+          ${job.link
+            ? `<p class="detail-link-full"><a href="${escapeHtml(job.link)}" target="_blank" rel="noopener">${escapeHtml(job.link)}</a></p>`
+            : '<p class="detail-empty">—</p>'}
+        </div>
+        <div class="detail-row">
+          <label>Notes</label>
+          ${job.notes
+            ? `<div class="detail-text-block">${escapeHtml(job.notes)}</div>`
+            : '<p class="detail-empty">—</p>'}
+        </div>
+      </div>
+
+      <div class="detail-section">
+        <div class="detail-section-title">Timeline</div>
+        <div class="detail-row">
+          <label>Saved</label>
+          ${detailValue(escapeHtml(formatDate(job.createdAt)))}
+        </div>
+        <div class="detail-row">
+          <label>Last updated</label>
+          ${detailValue(escapeHtml(formatDate(job.updatedAt)))}
+        </div>
       </div>`;
 
     const linkBtn = document.getElementById('detail-link');
@@ -499,6 +578,9 @@
 
   clearFiltersBtn.addEventListener('click', clearFilters);
   document.getElementById('add-job-btn').addEventListener('click', () => openAddJob());
+  document.getElementById('settings-btn').addEventListener('click', () => {
+    chrome.runtime.openOptionsPage();
+  });
   document.getElementById('export-btn').addEventListener('click', exportJobs);
   document.getElementById('detail-close').addEventListener('click', closeDetail);
   document.getElementById('detail-edit').addEventListener('click', openEdit);

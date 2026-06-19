@@ -1,10 +1,13 @@
 {
   "manifest_version": 3,
   "name": "Apply2Board",
-  "version": "1.0.0",
-  "description": "Save job listings to a local Kanban board — no servers, no API keys, fully offline.",
+  "version": "1.1.0",
+  "description": "Save job listings to a local Kanban board with AI cover letter generation.",
   "permissions": ["storage"],
-  "host_permissions": ["<all_urls>"],
+  "host_permissions": [
+    "<all_urls>",
+    "https://generativelanguage.googleapis.com/*"
+  ],
   "action": {
     "default_popup": "popup/popup.html",
     "default_icon": {
@@ -14,6 +17,7 @@
     },
     "default_title": "Apply2Board"
   },
+  "options_page": "settings/settings.html",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
@@ -30,7 +34,8 @@
         "lib/storage.js",
         "lib/attachments.js",
         "content/extractor.js",
-        "content/content.js"
+        "content/content.js",
+        "content/selection-toolbar.js"
       ],
       "css": ["content/content.css"],
       "run_at": "document_idle"
@@ -38,7 +43,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["icons/*"],
+      "resources": ["icons/*", "settings/settings.html"],
       "matches": ["<all_urls>"]
     }
   ]

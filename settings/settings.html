@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Apply2Board — Settings</title>
+  <link rel="stylesheet" href="settings.css" />
+</head>
+<body>
+  <div class="settings-page">
+    <header class="settings-header">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="7" height="9" rx="1"/>
+        <rect x="14" y="3" width="7" height="5" rx="1"/>
+        <rect x="14" y="12" width="7" height="9" rx="1"/>
+        <rect x="3" y="16" width="7" height="5" rx="1"/>
+      </svg>
+      <div>
+        <h1>Settings</h1>
+        <p>Configure Gemini AI for cover letters and Q&A</p>
+      </div>
+    </header>
+
+    <form id="settings-form" class="settings-form">
+      <section class="settings-section">
+        <h2>Gemini API Key</h2>
+        <p class="section-desc">
+          Get a free key from
+          <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a>.
+          Stored locally in your browser only.
+        </p>
+        <div class="field">
+          <label for="gemini-api-key">API Key</label>
+          <div class="key-row">
+            <input type="password" id="gemini-api-key" placeholder="AIza..." autocomplete="off" />
+            <button type="button" class="btn btn-secondary" id="toggle-key">Show</button>
+          </div>
+        </div>
+        <div class="field">
+          <label for="gemini-model">Model</label>
+          <select id="gemini-model"></select>
+        </div>
+        <div class="status-pill" id="key-status">Not configured</div>
+      </section>
+
+      <section class="settings-section">
+        <h2>Cover letter instructions</h2>
+        <p class="section-desc">
+          Tell Gemini how to write your cover letters — tone, length, language, structure.
+        </p>
+        <div class="field">
+          <label for="cover-instructions">Instructions (system prompt)</label>
+          <textarea id="cover-instructions" rows="10"></textarea>
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm" id="reset-instructions">Reset to default</button>
+      </section>
+
+      <section class="settings-section">
+        <h2>Q&A instructions</h2>
+        <p class="section-desc">
+          How Gemini should answer application questions you highlight on the page.
+        </p>
+        <div class="field">
+          <label for="qa-instructions">Instructions (system prompt)</label>
+          <textarea id="qa-instructions" rows="10"></textarea>
+        </div>
+        <button type="button" class="btn btn-secondary btn-sm" id="reset-qa-instructions">Reset to default</button>
+      </section>
+
+      <section class="settings-section">
+        <h2>Candidate profile <span class="optional">(optional)</span></h2>
+        <p class="section-desc">
+          Your background summary — skills, experience, education. Used together with selected text on the page.
+        </p>
+        <div class="field">
+          <label for="candidate-profile">About you</label>
+          <textarea id="candidate-profile" rows="6" placeholder="e.g. 5 years frontend experience, React, TypeScript, led team of 3…"></textarea>
+        </div>
+      </section>
+
+      <section class="settings-section usage-section">
+        <h2>How to use</h2>
+        <ol class="usage-steps">
+          <li>Save your API key and instructions above</li>
+          <li>Open a job listing page</li>
+          <li>Highlight text (experience, job description, or <strong>application questions</strong>)</li>
+          <li>Click <strong>✨ Cover Letter</strong> or <strong>💬 Answer</strong> in the toolbar</li>
+          <li>Review, copy, or save to the job card</li>
+        </ol>
+      </section>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" id="save-btn">Save settings</button>
+        <span class="save-msg" id="save-msg" hidden>Saved ✔</span>
+      </div>
+    </form>
+  </div>
+
+  <script src="../lib/constants.js"></script>
+  <script src="../lib/settings.js"></script>
+  <script src="settings.js"></script>
+</body>
+</html>

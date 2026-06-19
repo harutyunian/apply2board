@@ -130,3 +130,23 @@ body {
 .open-board-btn:hover {
   background: #4338ca;
 }
+
+.settings-btn {
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  background: transparent;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s, color 0.15s;
+}
+
+.settings-btn:hover {
+  background: #f8fafc;
+  color: #4f46e5;
+}

@@ -19,6 +19,7 @@
       <span class="job-count" id="job-count">0 jobs</span>
     </div>
     <div class="header-right">
+      <button class="btn btn-secondary" id="settings-btn">⚙ Settings</button>
       <button class="btn btn-secondary" id="docs-btn">CV & Cover Letters</button>
       <button class="btn btn-primary" id="add-job-btn">+ Add Job</button>
       <button class="btn btn-danger" id="clear-filters" hidden>Clear filters</button>
@@ -68,7 +69,10 @@
   <div class="detail-overlay" id="detail-overlay" hidden>
     <div class="detail-modal" role="dialog">
       <div class="detail-header">
-        <h2 id="detail-title"></h2>
+        <div class="detail-header-text">
+          <h2 id="detail-title"></h2>
+          <p id="detail-subtitle" class="detail-subtitle"></p>
+        </div>
         <button class="detail-close" id="detail-close" aria-label="Close">&times;</button>
       </div>
       <div class="detail-body" id="detail-body"></div>

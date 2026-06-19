@@ -46,6 +46,10 @@
     chrome.tabs.create({ url: chrome.runtime.getURL('board/board.html') });
   });
 
+  document.getElementById('open-settings').addEventListener('click', () => {
+    chrome.runtime.openOptionsPage();
+  });
+
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area === 'local' && changes[A2B_STORAGE_KEY]) {
       render();
