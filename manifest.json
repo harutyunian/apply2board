@@ -28,6 +28,7 @@
       "js": [
         "lib/constants.js",
         "lib/storage.js",
+        "lib/attachments.js",
         "content/extractor.js",
         "content/content.js"
       ],

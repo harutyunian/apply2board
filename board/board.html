@@ -19,6 +19,8 @@
       <span class="job-count" id="job-count">0 jobs</span>
     </div>
     <div class="header-right">
+      <button class="btn btn-secondary" id="docs-btn">CV & Cover Letters</button>
+      <button class="btn btn-primary" id="add-job-btn">+ Add Job</button>
       <button class="btn btn-danger" id="clear-filters" hidden>Clear filters</button>
       <button class="btn btn-secondary" id="export-btn">Export</button>
     </div>
@@ -44,6 +46,16 @@
     <div class="filter-group">
       <label for="filter-salary-max">Salary max</label>
       <input type="number" id="filter-salary-max" placeholder="e.g. 200000" min="0" />
+    </div>
+    <div class="filter-group">
+      <label for="filter-tag">Tag</label>
+      <select id="filter-tag">
+        <option value="">All tags</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="board-sort">Sort</label>
+      <select id="board-sort"></select>
     </div>
     <div class="filter-group filter-keywords">
       <label for="filter-keywords">Keywords</label>
@@ -71,7 +83,7 @@
   <div class="edit-overlay" id="edit-overlay" hidden>
     <div class="edit-modal" role="dialog">
       <div class="detail-header">
-        <h2>Edit Job</h2>
+        <h2 id="form-modal-title">Edit Job</h2>
         <button class="detail-close" id="edit-close" aria-label="Close">&times;</button>
       </div>
       <form class="edit-form" id="edit-form">
@@ -85,23 +97,108 @@
         </div>
         <div class="form-field">
           <label for="edit-link">Link</label>
-          <input type="url" id="edit-link" />
+          <input type="text" id="edit-link" placeholder="https://..." />
         </div>
         <div class="form-field">
           <label for="edit-status">Status</label>
           <select id="edit-status"></select>
         </div>
+        <div class="form-field" id="edit-applied-field">
+          <label for="edit-applied">Applied date</label>
+          <input type="date" id="edit-applied" />
+        </div>
         <div class="form-field">
-          <label for="edit-salary">Salary</label>
-          <input type="text" id="edit-salary" />
+          <label>Salary</label>
+          <div class="salary-row">
+            <select id="edit-currency"></select>
+            <input type="text" id="edit-salary" placeholder="120000 – 150000" />
+          </div>
+        </div>
+        <div class="form-field">
+          <label for="edit-tags">Tags <span class="optional">(comma-separated)</span></label>
+          <input type="text" id="edit-tags" placeholder="remote, frontend, referral" />
+        </div>
+        <div class="form-field attach-field">
+          <label for="edit-cv-select">CV / Resume</label>
+          <select id="edit-cv-select"></select>
+          <textarea id="edit-cv-custom-text" rows="3" hidden placeholder="Paste CV text for this job…"></textarea>
+          <input type="text" id="edit-cv-custom-link" hidden placeholder="https://drive.google.com/..." />
+        </div>
+        <div class="form-field attach-field">
+          <label for="edit-cl-select">Cover Letter</label>
+          <select id="edit-cl-select"></select>
+          <textarea id="edit-cl-custom-text" rows="3" hidden placeholder="Paste cover letter text…"></textarea>
+          <input type="text" id="edit-cl-custom-link" hidden placeholder="https://docs.google.com/..." />
         </div>
         <div class="form-field">
           <label for="edit-notes">Notes</label>
+          <div class="note-templates" id="edit-templates"></div>
           <textarea id="edit-notes" rows="4"></textarea>
         </div>
         <div class="edit-actions">
           <button type="button" class="btn btn-secondary" id="edit-cancel">Cancel</button>
-          <button type="submit" class="btn btn-primary">Save changes</button>
+          <button type="submit" class="btn btn-primary" id="form-submit-btn">Save changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="detail-overlay" id="docs-overlay" hidden>
+    <div class="docs-modal" role="dialog">
+      <div class="detail-header">
+        <h2>CV & Cover Letters</h2>
+        <button class="detail-close" id="docs-close" aria-label="Close">&times;</button>
+      </div>
+      <p class="docs-intro">Save your CVs and cover letters here. When adding a job, pick one from the dropdown.</p>
+      <div class="docs-grid">
+        <section class="docs-section">
+          <div class="docs-section-header">
+            <h3>CV / Resume</h3>
+            <button type="button" class="btn btn-secondary btn-sm" id="add-doc-cv">+ Add CV</button>
+          </div>
+          <div class="docs-list" id="docs-list-cv"></div>
+        </section>
+        <section class="docs-section">
+          <div class="docs-section-header">
+            <h3>Cover Letters</h3>
+            <button type="button" class="btn btn-secondary btn-sm" id="add-doc-cover">+ Add Cover Letter</button>
+          </div>
+          <div class="docs-list" id="docs-list-cover"></div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <div class="detail-overlay" id="doc-form-overlay" hidden>
+    <div class="edit-modal" role="dialog">
+      <div class="detail-header">
+        <h2 id="doc-form-title">Add document</h2>
+        <button class="detail-close" id="doc-form-close" aria-label="Close">&times;</button>
+      </div>
+      <form class="edit-form" id="doc-form">
+        <input type="hidden" id="doc-type" value="cv" />
+        <div class="form-field">
+          <label for="doc-name">Name</label>
+          <input type="text" id="doc-name" placeholder="e.g. CV Frontend EN" required />
+        </div>
+        <div class="form-field">
+          <label for="doc-content-type">Type</label>
+          <select id="doc-content-type">
+            <option value="link">Link (Google Drive, Dropbox, etc.)</option>
+            <option value="text">Text</option>
+          </select>
+        </div>
+        <div class="form-field" id="doc-content-link-wrap">
+          <label for="doc-content-link">Link</label>
+          <input type="text" id="doc-content-link" placeholder="https://..." />
+        </div>
+        <div class="form-field" id="doc-content-text-wrap" hidden>
+          <label for="doc-content-text">Text</label>
+          <textarea id="doc-content-text" rows="6" placeholder="Paste your CV or cover letter text…"></textarea>
+        </div>
+        <div class="edit-actions">
+          <button type="button" class="btn btn-secondary" id="doc-form-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save document</button>
         </div>
       </form>
     </div>
@@ -109,6 +206,8 @@
 
   <script src="../lib/constants.js"></script>
   <script src="../lib/storage.js"></script>
+  <script src="../lib/attachments.js"></script>
   <script src="board.js"></script>
+  <script src="documents.js"></script>
 </body>
 </html>
