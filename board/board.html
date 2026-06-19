@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Apply2Board — Job Pipeline</title>
+  <link rel="stylesheet" href="board.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <svg class="logo" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="7" height="9" rx="1"/>
+        <rect x="14" y="3" width="7" height="5" rx="1"/>
+        <rect x="14" y="12" width="7" height="9" rx="1"/>
+        <rect x="3" y="16" width="7" height="5" rx="1"/>
+      </svg>
+      <h1>Apply2Board</h1>
+      <span class="job-count" id="job-count">0 jobs</span>
+    </div>
+    <div class="header-right">
+      <button class="btn btn-danger" id="clear-filters" hidden>Clear filters</button>
+      <button class="btn btn-secondary" id="export-btn">Export</button>
+    </div>
+  </header>
+
+  <section class="filters">
+    <div class="filter-group">
+      <label for="filter-status">Status</label>
+      <select id="filter-status">
+        <option value="">All statuses</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="filter-company">Company</label>
+      <select id="filter-company">
+        <option value="">All companies</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="filter-salary-min">Salary min</label>
+      <input type="number" id="filter-salary-min" placeholder="e.g. 80000" min="0" />
+    </div>
+    <div class="filter-group">
+      <label for="filter-salary-max">Salary max</label>
+      <input type="number" id="filter-salary-max" placeholder="e.g. 200000" min="0" />
+    </div>
+    <div class="filter-group filter-keywords">
+      <label for="filter-keywords">Keywords</label>
+      <input type="search" id="filter-keywords" placeholder="Search title, company, notes…" />
+    </div>
+  </section>
+
+  <main class="board" id="board"></main>
+
+  <div class="detail-overlay" id="detail-overlay" hidden>
+    <div class="detail-modal" role="dialog">
+      <div class="detail-header">
+        <h2 id="detail-title"></h2>
+        <button class="detail-close" id="detail-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="detail-body" id="detail-body"></div>
+      <div class="detail-actions">
+        <button class="btn btn-danger" id="detail-delete">Delete</button>
+        <a class="btn btn-secondary" id="detail-link" target="_blank" rel="noopener">Open listing</a>
+        <button class="btn btn-primary" id="detail-edit">Edit</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="edit-overlay" id="edit-overlay" hidden>
+    <div class="edit-modal" role="dialog">
+      <div class="detail-header">
+        <h2>Edit Job</h2>
+        <button class="detail-close" id="edit-close" aria-label="Close">&times;</button>
+      </div>
+      <form class="edit-form" id="edit-form">
+        <div class="form-field">
+          <label for="edit-title">Job Title</label>
+          <input type="text" id="edit-title" required />
+        </div>
+        <div class="form-field">
+          <label for="edit-company">Company</label>
+          <input type="text" id="edit-company" />
+        </div>
+        <div class="form-field">
+          <label for="edit-link">Link</label>
+          <input type="url" id="edit-link" />
+        </div>
+        <div class="form-field">
+          <label for="edit-status">Status</label>
+          <select id="edit-status"></select>
+        </div>
+        <div class="form-field">
+          <label for="edit-salary">Salary</label>
+          <input type="text" id="edit-salary" />
+        </div>
+        <div class="form-field">
+          <label for="edit-notes">Notes</label>
+          <textarea id="edit-notes" rows="4"></textarea>
+        </div>
+        <div class="edit-actions">
+          <button type="button" class="btn btn-secondary" id="edit-cancel">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../lib/constants.js"></script>
+  <script src="../lib/storage.js"></script>
+  <script src="board.js"></script>
+</body>
+</html>
