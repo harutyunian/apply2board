@@ -26,6 +26,7 @@
     const j = job || {};
     a2bFillAttachmentFields(document, 'edit-cv', j, allDocuments, A2B_DOC_TYPE_CV, 'cv', boardGetEl);
     a2bFillAttachmentFields(document, 'edit-cl', j, allDocuments, A2B_DOC_TYPE_COVER, 'cl', boardGetEl);
+    a2bBindAttachmentSelects(document, ['edit-cv', 'edit-cl'], boardGetEl);
   }
 
   window.a2bRefreshAttachmentSelects = () => refreshAttachmentSelects(

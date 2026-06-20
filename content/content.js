@@ -57,7 +57,8 @@
               <h2 id="a2b-modal-title">Save Job</h2>
               <button class="a2b-close" id="a2b-close" aria-label="Close">&times;</button>
             </div>
-            <form class="a2b-form" id="a2b-form">
+            <form class="a2b-form" id="a2b-form" novalidate>
+              <div class="a2b-form-error" id="a2b-form-error" hidden></div>
               <div class="a2b-field">
                 <label for="a2b-title">Job Title</label>
                 <input type="text" id="a2b-title" name="title" placeholder="Software Engineer" required />
@@ -68,7 +69,7 @@
               </div>
               <div class="a2b-field">
                 <label for="a2b-link">Link</label>
-                <input type="url" id="a2b-link" name="link" placeholder="https://..." />
+                <input type="text" id="a2b-link" name="link" placeholder="https://..." />
               </div>
               <div class="a2b-field">
                 <label for="a2b-status">Status</label>
@@ -121,6 +122,7 @@
       this.shadowGetEl = (_, id) => this.shadow.getElementById(id);
       this.bindEvents();
       this.prefillForm();
+      this.refreshAttachmentSelects({}).catch(() => {});
     }
 
     async refreshAttachmentSelects(job) {
@@ -128,6 +130,18 @@
       const j = job || {};
       a2bFillAttachmentFields(this.shadow, 'a2b-cv', j, documents, A2B_DOC_TYPE_CV, 'cv', this.shadowGetEl);
       a2bFillAttachmentFields(this.shadow, 'a2b-cl', j, documents, A2B_DOC_TYPE_COVER, 'cl', this.shadowGetEl);
+      a2bBindAttachmentSelects(this.shadow, ['a2b-cv', 'a2b-cl'], this.shadowGetEl);
+    }
+
+    showFormError(message) {
+      const el = this.shadow.getElementById('a2b-form-error');
+      if (!message) {
+        el.hidden = true;
+        el.textContent = '';
+        return;
+      }
+      el.textContent = message;
+      el.hidden = false;
     }
 
     getStyles() {
@@ -179,16 +193,19 @@
           width: 100%;
           max-width: 440px;
           max-height: 90vh;
-          overflow-y: auto;
+          overflow: visible;
           box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
           animation: a2b-slide-up 0.25s ease;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          display: flex;
+          flex-direction: column;
         }
         .a2b-modal-header {
           display: flex;
           align-items: center;
           justify-content: space-between;
           padding: 20px 24px 0;
+          flex-shrink: 0;
         }
         .a2b-modal-header h2 { font-size: 18px; font-weight: 700; color: #0f172a; }
         .a2b-close {
@@ -201,7 +218,17 @@
           padding: 4px;
         }
         .a2b-close:hover { color: #475569; }
-        .a2b-form { padding: 20px 24px 24px; display: flex; flex-direction: column; gap: 14px; }
+        .a2b-form { padding: 20px 24px 24px; display: flex; flex-direction: column; gap: 14px; overflow-y: auto; flex: 1; min-height: 0; }
+        .a2b-form-error {
+          padding: 10px 12px;
+          background: #fef2f2;
+          border: 1px solid #fecaca;
+          border-radius: 8px;
+          color: #dc2626;
+          font-size: 13px;
+          line-height: 1.4;
+        }
+        .a2b-form-error[hidden] { display: none; }
         .a2b-field { display: flex; flex-direction: column; gap: 5px; }
         .a2b-field label { font-size: 13px; font-weight: 600; color: #334155; }
         .a2b-optional { font-weight: 400; color: #94a3b8; }
@@ -218,6 +245,14 @@
           background: #fff;
           transition: border-color 0.15s;
           outline: none;
+          width: 100%;
+        }
+        .a2b-field select {
+          cursor: pointer;
+          position: relative;
+          z-index: 1;
+          appearance: auto;
+          -webkit-appearance: menulist;
         }
         .a2b-field input:focus, .a2b-field select:focus, .a2b-field textarea:focus {
           border-color: #4f46e5;
@@ -266,6 +301,9 @@
       this.overlay.addEventListener('click', (e) => {
         if (e.target === this.overlay) this.closeModal();
       });
+      this.shadow.querySelector('.a2b-modal').addEventListener('mousedown', (e) => {
+        e.stopPropagation();
+      });
       this.form.addEventListener('submit', (e) => this.handleSubmit(e));
 
       this.shadow.getElementById('a2b-status').addEventListener('change', (e) => {
@@ -305,22 +343,21 @@
     }
 
     prefillForm() {
-      const { title, company, link, salary } = this.extracted;
+      const { title, company, link, salary = '', description = '' } = this.extracted;
       this.shadow.getElementById('a2b-title').value = title;
       this.shadow.getElementById('a2b-company').value = company;
       this.shadow.getElementById('a2b-link').value = link;
 
-      const salaryMatch = salary.match(/[\d,]+(?:\s*[–—-]\s*[\d,]+)?/);
+      const salaryMatch = String(salary).match(/[\d,]+(?:\s*[–—-]\s*[\d,]+)?/);
       if (salaryMatch) {
         this.shadow.getElementById('a2b-salary').value = salaryMatch[0].replace(/,/g, '');
       }
 
-      const currencyDetected = A2B_CURRENCIES.find((c) => salary.includes(c.symbol));
+      const currencyDetected = A2B_CURRENCIES.find((c) => String(salary).includes(c.symbol));
       if (currencyDetected) {
         this.shadow.getElementById('a2b-currency').value = currencyDetected.id;
       }
 
-      const { description } = this.extracted;
       if (description) {
         this.shadow.getElementById('a2b-notes').placeholder = truncate(description, 200);
       }
@@ -360,6 +397,7 @@
       this.isOpen = true;
       this.fab.classList.add('active');
       this.overlay.hidden = false;
+      this.showFormError('');
 
       if (this.existingJob) {
         await this.fillFormFromJob(this.existingJob);
@@ -382,14 +420,23 @@
     async handleSubmit(e) {
       e.preventDefault();
       const submitBtn = this.shadow.getElementById('a2b-submit');
+      const title = this.shadow.getElementById('a2b-title').value.trim();
+
+      if (!title) {
+        this.showFormError('Job title is required.');
+        this.shadow.getElementById('a2b-title').focus();
+        return;
+      }
+
+      this.showFormError('');
       submitBtn.disabled = true;
       submitBtn.textContent = 'Saving…';
 
       const status = this.shadow.getElementById('a2b-status').value;
       const data = {
-        title: this.shadow.getElementById('a2b-title').value.trim(),
+        title,
         company: this.shadow.getElementById('a2b-company').value.trim(),
-        link: this.shadow.getElementById('a2b-link').value.trim(),
+        link: this.shadow.getElementById('a2b-link').value.trim() || window.location.href,
         status,
         currency: this.shadow.getElementById('a2b-currency').value,
         salary: this.shadow.getElementById('a2b-salary').value.trim(),
@@ -409,6 +456,7 @@
         this.closeModal();
       } catch (err) {
         console.error('[Apply2Board] Save failed:', err);
+        this.showFormError(err.message || 'Save failed. Try again.');
       } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = this.existingJob ? 'Update' : 'Save';
